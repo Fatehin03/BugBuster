@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bug Fix AI + Code Explainer</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="config.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .container {
+      display: flex;
+      flex-grow: 1;
+      overflow: hidden;
+    }
+    .left, .right {
+      width: 50%;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    textarea {
+      width: 100%;
+      flex-grow: 1;
+      background: #222;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 10px;
+      border: none;
+      resize: vertical;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    select, button {
+      padding: 10px;
+      border-radius: 4px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    select {
+      background: #222;
+      color: #0f0;
+      flex-shrink: 0;
+    }
+    button {
+      background: #0f0;
+      color: #000;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background: #0c0;
+    }
+    .controls {
+      display: flex;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+    .output {
+      white-space: pre-wrap;
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 5px;
+      flex-grow: 1;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center; margin:10px 0;">Bug Fix AI + Code Explainer</h1>
+  <div class="container">
+    <div class="left">
+      <h2>Enter Your Code</h2>
+      <div class="controls">
+        <select id="language">
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="java">Java</option>
+          <option value="c">C</option>
+          <option value="cpp">C++</option>
+          <option value="csharp">C#</option>
+          <option value="ruby">Ruby</option>
+          <option value="php">PHP</option>
+          <option value="html">HTML</option>
+          <option value="css">CSS</option>
+        </select>
+        <button id="analyzeBtn">🔍 Analyze</button>
+      </div>
+      <textarea id="code" placeholder="Paste your code here..."></textarea>
+    </div>
+    <div class="right">
+      <h2>AI Response</h2>
+      <div class="output" id="aiOutput">Your explanation will appear here...</div>
+    </div>
+  </div>
+
+  <script>
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const aiOutput = document.getElementById('aiOutput');
+    const codeInput = document.getElementById('code');
+    const languageSelect = document.getElementById('language');
+
+    analyzeBtn.addEventListener('click', async () => {
+      const inputCode = codeInput.value.trim();
+      if (!inputCode) {
+        alert('Please paste some code.');
+        return;
+      }
+      const language = languageSelect.value;
+      aiOutput.textContent = '⏳ Analyzing... Please wait.';
+
+      const prompt = `You are a helpful AI assistant. Analyze the following ${language} code: 
+1. Explain what it does.
+2. Find any bugs.
+3. Explain the bug(s).
+4. Suggest fixes:
+
+${inputCode}`;
+
+      try {
+        const response = await axios.post(
+          'https://openrouter.ai/api/v1/chat/completions',
+          {
+            model: 'openai/gpt-3.5-turbo',
+            messages: [{ role: 'user', content: prompt }],
+          },
+          {
+            headers: {
+              Authorization:
+                'Bearer ' + API_KEY,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const output = response.data.choices[0].message.content;
+        aiOutput.textContent = output;
+      } catch (error) {
+        console.error('API Error:', error);
+        aiOutput.textContent =
+          '❌ Error analyzing code. Please check your internet connection or API key.';
+      }
+    });
+  </script>
+</body>
+</html>
